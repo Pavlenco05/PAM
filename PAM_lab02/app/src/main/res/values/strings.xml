@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Daily Planner</string>
+    <string name="add_event">Add Event</string>
+    <string name="update_event">Update Event</string>
+    <string name="delete_event">Delete Event</string>
+    <string name="search_events">Search Events</string>
+    <string name="event_title">Event Title</string>
+    <string name="event_description">Event Description</string>
+    <string name="event_date">Event Date</string>
+    <string name="event_time">Event Time</string>
+    <string name="save_event">Save Event</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_events_found">No events found</string>
+    <string name="event_saved">Event saved successfully</string>
+    <string name="event_deleted">Event deleted successfully</string>
+    <string name="event_updated">Event updated successfully</string>
+    <string name="notification_title">Daily Planner Reminder</string>
+    <string name="notification_text">You have an upcoming event</string>
+    <string name="search_hint">Search events by title or description...</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="this_week">This Week</string>
+    <string name="all_events">All Events</string>
+</resources>

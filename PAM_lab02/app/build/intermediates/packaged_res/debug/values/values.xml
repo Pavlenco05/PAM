@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent_color">#FF2196F3</color>
+    <color name="black">#FF000000</color>
+    <color name="dark_gray">#FF424242</color>
+    <color name="error_color">#FFF44336</color>
+    <color name="ic_launcher_background">#FF6200EE</color>
+    <color name="light_gray">#FFF5F5F5</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="success_color">#FF4CAF50</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="warning_color">#FFFF9800</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="add_event">Add Event</string>
+    <string name="all_events">All Events</string>
+    <string name="app_name">Daily Planner</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_event">Delete Event</string>
+    <string name="event_date">Event Date</string>
+    <string name="event_deleted">Event deleted successfully</string>
+    <string name="event_description">Event Description</string>
+    <string name="event_saved">Event saved successfully</string>
+    <string name="event_time">Event Time</string>
+    <string name="event_title">Event Title</string>
+    <string name="event_updated">Event updated successfully</string>
+    <string name="no_events_found">No events found</string>
+    <string name="notification_text">You have an upcoming event</string>
+    <string name="notification_title">Daily Planner Reminder</string>
+    <string name="save_event">Save Event</string>
+    <string name="search_events">Search Events</string>
+    <string name="search_hint">Search events by title or description...</string>
+    <string name="this_week">This Week</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="update_event">Update Event</string>
+    <style name="Theme.DailyPlanner" parent="Theme.Material3.DayNight">
+        
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        
+    </style>
+    <style name="Theme.DailyPlanner.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="Theme.DailyPlanner.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+</resources>

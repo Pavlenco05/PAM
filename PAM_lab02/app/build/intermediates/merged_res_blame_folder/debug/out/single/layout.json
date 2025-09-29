@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-mergeDebugResources-56:\\layout\\activity_main.xml",
+        "source": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-main-59:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "com.dailyplanner.organizer.app-mergeDebugResources-56:/layout/activity_main.xml",
+        "source": "com.dailyplanner.organizer.app-main-59:/layout/activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-mergeDebugResources-56:\\layout\\activity_add.xml",
+        "source": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-main-59:\\layout\\activity_add.xml"
+    },
+    {
+        "merged": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-mergeDebugResources-56:\\layout\\item_event.xml",
+        "source": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-main-59:\\layout\\item_event.xml"
+    },
+    {
+        "merged": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-mergeDebugResources-56:\\layout\\activity_update.xml",
+        "source": "C:\\Users\\pavle\\.gradle\\daemon\\8.4\\com.dailyplanner.organizer.app-main-59:\\layout\\activity_update.xml"
+    }
+]
