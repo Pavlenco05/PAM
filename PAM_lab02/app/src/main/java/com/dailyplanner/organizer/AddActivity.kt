@@ -12,6 +12,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class AddActivity : AppCompatActivity() {
+
+
+
     
     private lateinit var storageManager: EventStorageManager
     private lateinit var editTextTitle: TextInputEditText
