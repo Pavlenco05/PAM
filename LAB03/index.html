@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Feed Reader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .feed-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .feed-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .feed-input button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .feed-input button:hover {
+            background-color: #2980b9;
+        }
+        .saved-feeds {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feed-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .feed-item button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .feed-item button:hover {
+            background-color: #c0392b;
+        }
+        .posts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .post-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .post-card:hover {
+            transform: translateY(-2px);
+        }
+        .post-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .post-description {
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .post-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .post-link:hover {
+            text-decoration: underline;
+        }
+        .post-date {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RSS Feed Reader</h1>
+        <p>Add RSS feeds and browse their posts</p>
+    </div>
+
+    <div class="feed-input">
+        <input type="url" id="feedUrl" placeholder="Enter RSS feed URL (e.g., https://news.yam.md/ro/rss)" />
+        <button onclick="addFeed()">Add Feed</button>
+    </div>
+
+    <div class="saved-feeds">
+        <h3>Saved Feeds</h3>
+        <div id="savedFeedsList"></div>
+    </div>
+
+    <div id="postsContainer" class="posts-container"></div>
+
+    <script>
+        // RSS Feed Reader Application
+        class RSSReader {
+            constructor() {
+                this.feeds = this.loadFeeds();
+                this.displayFeeds();
+            }
+
+            // Load feeds from localStorage
+            loadFeeds() {
+                const saved = localStorage.getItem('rssFeeds');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            // Save feeds to localStorage
+            saveFeeds() {
+                localStorage.setItem('rssFeeds', JSON.stringify(this.feeds));
+            }
+
+            // Add a new RSS feed
+            async addFeed(url) {
+                if (!url) {
+                    this.showError('Please enter a valid RSS feed URL');
+                    return;
+                }
+
+                try {
+                    this.showLoading('Loading RSS feed...');
+                    const feed = await this.fetchRSSFeed(url);
+                    this.feeds.push(feed);
+                    this.saveFeeds();
+                    this.displayFeeds();
+                    this.showPosts(feed);
+                    this.hideLoading();
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError('Failed to load RSS feed: ' + error.message);
+                }
+            }
+
+            // Fetch RSS feed using CORS proxy
+            async fetchRSSFeed(url) {
+                // Using a CORS proxy to avoid CORS issues
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                
+                const response = await fetch(proxyUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+
+                // Check for parsing errors
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    throw new Error('Invalid XML format');
+                }
+
+                // Extract feed information
+                const title = xmlDoc.querySelector('title')?.textContent || 'Unknown Feed';
+                const description = xmlDoc.querySelector('description')?.textContent || '';
+                const link = xmlDoc.querySelector('link')?.textContent || url;
+
+                // Extract posts
+                const items = xmlDoc.querySelectorAll('item');
+                const posts = Array.from(items).map(item => ({
+                    title: item.querySelector('title')?.textContent || 'No title',
+                    description: item.querySelector('description')?.textContent || 
+                               item.querySelector('summary')?.textContent || 
+                               item.querySelector('content')?.textContent || 'No description',
+                    link: item.querySelector('link')?.textContent || '#',
+                    pubDate: item.querySelector('pubDate')?.textContent || 
+                            item.querySelector('published')?.textContent || 
+                            'Unknown date'
+                }));
+
+                return {
+                    id: Date.now(),
+                    url: url,
+                    title: title,
+                    description: description,
+                    link: link,
+                    posts: posts,
+                    addedDate: new Date().toISOString()
+                };
+            }
+
+            // Display saved feeds
+            displayFeeds() {
+                const container = document.getElementById('savedFeedsList');
+                container.innerHTML = '';
+
+                if (this.feeds.length === 0) {
+                    container.innerHTML = '<p>No feeds saved yet. Add a feed above!</p>';
+                    return;
+                }
+
+                this.feeds.forEach(feed => {
+                    const feedDiv = document.createElement('div');
+                    feedDiv.className = 'feed-item';
+                    feedDiv.innerHTML = `
+                        <div>
+                            <strong>${feed.title}</strong><br>
+                            <small>${feed.posts.length} posts • Added: ${new Date(feed.addedDate).toLocaleDateString()}</small>
+                        </div>
+                        <div>
+                            <button onclick="rssReader.loadFeed(${feed.id})">Load</button>
+                            <button onclick="rssReader.deleteFeed(${feed.id})">Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(feedDiv);
+                });
+            }
+
+            // Load and display posts for a specific feed
+            loadFeed(feedId) {
+                const feed = this.feeds.find(f => f.id === feedId);
+                if (feed) {
+                    this.showPosts(feed);
+                }
+            }
+
+            // Delete a feed
+            deleteFeed(feedId) {
+                this.feeds = this.feeds.filter(f => f.id !== feedId);
+                this.saveFeeds();
+                this.displayFeeds();
+                document.getElementById('postsContainer').innerHTML = '';
+            }
+
+            // Display posts
+            showPosts(feed) {
+                const container = document.getElementById('postsContainer');
+                container.innerHTML = `<h2>Posts from ${feed.title}</h2>`;
+
+                if (feed.posts.length === 0) {
+                    container.innerHTML += '<p>No posts found in this feed.</p>';
+                    return;
+                }
+
+                feed.posts.forEach(post => {
+                    const postDiv = document.createElement('div');
+                    postDiv.className = 'post-card';
+                    postDiv.innerHTML = `
+                        <div class="post-title">${post.title}</div>
+                        <div class="post-description">${this.truncateText(post.description, 150)}</div>
+                        <a href="${post.link}" target="_blank" class="post-link">Read More</a>
+                        <div class="post-date">${new Date(post.pubDate).toLocaleDateString()}</div>
+                    `;
+                    container.appendChild(postDiv);
+                });
+            }
+
+            // Utility function to truncate text
+            truncateText(text, maxLength) {
+                if (text.length <= maxLength) return text;
+                return text.substring(0, maxLength) + '...';
+            }
+
+            // Show loading message
+            showLoading(message) {
+                const container = document.getElementById('postsContainer');
+                container.innerHTML = `<div class="loading">${message}</div>`;
+            }
+
+            // Hide loading message
+            hideLoading() {
+                // Loading will be replaced by content
+            }
+
+            // Show error message
+            showError(message) {
+                const container = document.getElementById('postsContainer');
+                container.innerHTML = `<div class="error">${message}</div>`;
+            }
+        }
+
+        // Initialize the RSS reader
+        const rssReader = new RSSReader();
+
+        // Add feed function
+        function addFeed() {
+            const urlInput = document.getElementById('feedUrl');
+            const url = urlInput.value.trim();
+            rssReader.addFeed(url);
+            urlInput.value = '';
+        }
+
+        // Allow Enter key to add feed
+        document.getElementById('feedUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addFeed();
+            }
+        });
+
+        // Load the default feed on page load
+        window.addEventListener('load', function() {
+            // Add the default feed
+            rssReader.addFeed('https://news.yam.md/ro/rss');
+        });
+    </script>
+</body>
+</html>
