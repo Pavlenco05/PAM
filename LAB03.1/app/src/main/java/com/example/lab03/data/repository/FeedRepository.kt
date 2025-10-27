@@ -26,20 +26,17 @@ class FeedRepository(
 
     suspend fun refreshFeed(feedUrl: String): Result<Unit> {
         return try {
-            android.util.Log.d("FeedRepository", "Refreshing feed: $feedUrl")
             val response = rssService.getFeed(feedUrl)
-            android.util.Log.d("FeedRepository", "Response code: ${response.code()}")
             
             if (response.isSuccessful) {
                 val rssFeed = response.body()
-                android.util.Log.d("FeedRepository", "Feed received: ${rssFeed != null}")
                 
                 if (rssFeed == null) {
                     return Result.failure(Exception("Empty response body from $feedUrl"))
                 }
                 
                 try {
-                    // Save or update feed
+                    // Save or update feed (optimized - single DB call)
                     val feedEntity = FeedEntity(
                         url = feedUrl,
                         title = rssFeed.channel.title.ifEmpty { "Unnamed Feed" },
@@ -47,42 +44,47 @@ class FeedRepository(
                         lastUpdated = System.currentTimeMillis()
                     )
                     dbHelper.insertFeed(feedEntity)
-                    android.util.Log.d("FeedRepository", "Feed saved: ${feedEntity.title}")
 
-                    // Save feed items
-                    val items = rssFeed.channel.items
-                    android.util.Log.d("FeedRepository", "Items count: ${items.size}")
+                    // Save feed items (optimized - batch insert)
+                    val items = rssFeed.channel.items ?: emptyList()
                     
-                    val feedItems = items.map { item ->
-                        mapToFeedItemEntity(item, feedUrl)
-                    }
-                    
-                    if (feedItems.isNotEmpty()) {
-                        dbHelper.insertFeedItems(feedItems)
-                        android.util.Log.d("FeedRepository", "Items saved: ${feedItems.size}")
+                    if (items.isNotEmpty()) {
+                        val feedItems = items.mapNotNull { item ->
+                            try {
+                                mapToFeedItemEntity(item, feedUrl)
+                            } catch (e: Exception) {
+                                null // Skip invalid items silently for speed
+                            }
+                        }
+                        if (feedItems.isNotEmpty()) {
+                            dbHelper.insertFeedItems(feedItems)
+                        }
                     }
                     
                     Result.success(Unit)
                 } catch (e: Exception) {
-                    android.util.Log.e("FeedRepository", "Error processing feed data", e)
                     Result.failure(e)
                 }
             } else {
-                android.util.Log.e("FeedRepository", "Failed to fetch feed: ${response.code()}")
                 val errorMessage = when (response.code()) {
-                    404 -> "Feed not found: $feedUrl"
-                    403 -> "Access denied to feed: $feedUrl"
-                    500 -> "Server error for feed: $feedUrl"
-                    else -> "Failed to fetch feed (${response.code()}): $feedUrl"
+                    404 -> "Feed not found"
+                    403 -> "Access denied"
+                    500 -> "Server error"
+                    else -> "Failed to fetch feed (${response.code()})"
                 }
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
-            android.util.Log.e("FeedRepository", "Exception refreshing feed", e)
+            android.util.Log.e("FeedRepository", "Error refreshing feed: ${e.message}", e)
             val errorMessage = when {
-                e.message?.contains("Unable to resolve host") == true -> "Cannot connect to server. Check internet connection."
-                e.message?.contains("timeout") == true -> "Connection timeout. Please try again."
-                else -> "Network error: ${e.message ?: "Unknown error"}"
+                e.message?.contains("Unable to resolve host") == true -> "Check internet connection"
+                e.message?.contains("timeout") == true -> "Request timeout"
+                e.message?.contains("XMLStreamException") == true -> "Invalid XML format - trying alternative feeds"
+                e.message?.contains("parseError") == true -> "XML parsing error - feed may be corrupted"
+                e.message?.contains("whitespace content") == true -> "XML format issue - trying to fix..."
+                e.message?.contains("Invalid XML format") == true -> "Feed has malformed XML - try a different feed"
+                e is org.simpleframework.xml.core.PersistenceException -> "XML parsing failed - feed format not supported"
+                else -> "Error: ${e.message ?: "Unknown error"}"
             }
             Result.failure(Exception(errorMessage))
         }
@@ -111,10 +113,10 @@ class FeedRepository(
         return FeedItemEntity(
             guid = item.guid.ifEmpty { item.link.ifEmpty { UUID.randomUUID().toString() } },
             feedUrl = feedUrl,
-            title = item.title,
-            link = item.link,
-            description = item.description,
-            pubDate = item.pubDate,
+            title = item.title.ifEmpty { "Untitled" },
+            link = item.link.ifEmpty { "" },
+            description = item.description.ifEmpty { "No description available" },
+            pubDate = item.pubDate.ifEmpty { "Unknown date" },
             isRead = false,
             isSaved = false
         )

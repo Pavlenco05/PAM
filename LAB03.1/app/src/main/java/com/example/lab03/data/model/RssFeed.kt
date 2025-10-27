@@ -13,7 +13,7 @@ data class FeedEntity(
 
 @Root(name = "rss", strict = false)
 data class RssFeed @JvmOverloads constructor(
-    @field:Element(name = "channel")
+    @field:Element(name = "channel", required = false)
     var channel: Channel = Channel()
 )
 

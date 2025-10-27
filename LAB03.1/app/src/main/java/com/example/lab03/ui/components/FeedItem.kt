@@ -83,6 +83,15 @@ fun FeedItemCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+                
+                if (item.link.isEmpty()) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "No link",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }

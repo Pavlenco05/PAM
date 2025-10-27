@@ -25,6 +25,7 @@ class FeedViewModel(private val repository: FeedRepository) : ViewModel() {
 
     init {
         loadFeeds()
+        // Don't auto-load feed - let user choose for faster startup
     }
 
     private fun loadFeeds() {
@@ -98,7 +99,13 @@ class FeedViewModel(private val repository: FeedRepository) : ViewModel() {
                 },
                 onFailure = { e ->
                     _errorMessage.value = e.message
-                    _uiState.value = FeedUiState.Error(e.message ?: "Failed to add feed")
+                    // If XML parsing fails, suggest trying a different feed
+                    val errorMessage = if (e.message?.contains("XML") == true || e.message?.contains("format") == true) {
+                        "${e.message}\n\nTry selecting a different feed from the samples."
+                    } else {
+                        e.message ?: "Failed to add feed"
+                    }
+                    _uiState.value = FeedUiState.Error(errorMessage)
                 }
             )
         }

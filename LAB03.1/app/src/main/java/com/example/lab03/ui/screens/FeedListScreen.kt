@@ -93,7 +93,10 @@ fun FeedListScreen(viewModel: FeedViewModel) {
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No feeds available")
+                            Text("Welcome! Add your first RSS feed")
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Choose from samples or enter a custom URL", 
+                                style = MaterialTheme.typography.bodySmall)
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(onClick = { showAddFeedDialog = true }) {
                                 Text("Add Feed")
@@ -155,7 +158,15 @@ fun FeedListScreen(viewModel: FeedViewModel) {
                                 item = item,
                                 onClick = {
                                     viewModel.markAsRead(item)
-                                    openLink(context, item)
+                                    if (item.link.isNotEmpty()) {
+                                        openLink(context, item)
+                                    } else {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "No link available for this item",
+                                            android.widget.Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 },
                                 onLongClick = {
                                     viewModel.toggleSavedStatus(item)
@@ -179,11 +190,18 @@ fun FeedListScreen(viewModel: FeedViewModel) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 "Error: ${errorState.message}",
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(16.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { viewModel.refreshCurrentFeed() }) {
-                                Text("Retry")
+                            Row {
+                                Button(onClick = { viewModel.refreshCurrentFeed() }) {
+                                    Text("Retry")
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Button(onClick = { showAddFeedDialog = true }) {
+                                    Text("Add Feed")
+                                }
                             }
                         }
                     }
@@ -215,7 +233,11 @@ fun AddFeedDialog(
         "BBC News" to "https://feeds.bbci.co.uk/news/rss.xml",
         "CNN" to "https://rss.cnn.com/rss/edition.rss",
         "Reuters" to "https://feeds.reuters.com/reuters/topNews",
-        "YAM News" to "https://news.yam.md/ro/rss"
+        "TechCrunch" to "https://techcrunch.com/feed/",
+        "The Verge" to "https://www.theverge.com/rss/index.xml",
+        "Reddit Programming" to "https://www.reddit.com/r/programming/.rss",
+        "Android Developers" to "https://android-developers.googleblog.com/feeds/posts/default",
+        "YAM News (Romanian)" to "https://news.yam.md/ro/rss"
     )
     
     androidx.compose.material3.AlertDialog(
